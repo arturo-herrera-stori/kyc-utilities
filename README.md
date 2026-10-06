@@ -28,9 +28,15 @@ After the first deploy, enable **Settings → Pages → Build and deployment →
 
 3. Merge to `main` — the Pages workflow redeploys automatically.
 
-**Categories:** `observability`, `reference`, `runbooks`, `tools`, `onboarding` (or a new key; the hub shows it as-is).
+**Categories:** `observability`, `reference`, `runbooks`, `tools`, `onboarding` (extend the list in `scripts/validate_catalog.py` if you add a new one).
 
-**Slugs:** use `kebab-case` in URLs. Prefer `utilities/<slug>/index.html` as the entry point.
+**Slugs:** use `kebab-case`. The catalog `id` must match the folder name (`utilities/<id>/index.html`).
+
+**CI:** the [Validate catalog](.github/workflows/validate-catalog.yml) workflow runs on pushes and PRs to `main`. It checks JSON shape, unique ids, paths, `index.html` files, and orphan folders under `utilities/`. Run locally:
+
+```bash
+python3 scripts/validate_catalog.py
+```
 
 Optional: add a link back to the hub at the top of each utility (`../../` from one level under `utilities/`).
 
