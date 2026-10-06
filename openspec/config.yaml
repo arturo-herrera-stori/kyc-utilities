@@ -1,5 +1,10 @@
 schema: spec-driven
 
+context: |
+  Static KYC engineering utilities hub published via GitHub Pages
+  (arturo-herrera-stori/kyc-utilities). Catalog: data/utilities.json;
+  one folder per utility under utilities/<slug>/index.html.
+
 # Project context (optional)
 # This is shown to AI when creating artifacts.
 # Add your tech stack, conventions, style guides, domain knowledge, etc.
