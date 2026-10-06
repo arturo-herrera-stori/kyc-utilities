@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KYC Utilities Hub</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"
+    />
+    <link rel="stylesheet" href="assets/hub.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="page">
+        <p class="eyebrow">KYC Engineering</p>
+        <h1>KYC Utilities Hub</h1>
+        <p class="dek">
+          Static reference tools for the KYC team. Pick a utility below; new
+          entries are added under <code class="mono">utilities/</code> and
+          registered in <code class="mono">data/utilities.json</code>.
+        </p>
+      </header>
+
+      <div class="toolbar">
+        <input
+          id="search"
+          type="search"
+          placeholder="Filter by title, summary, or category…"
+          autocomplete="off"
+        />
+        <p class="toolbar-meta mono" id="count-live">Loading…</p>
+      </div>
+
+      <main id="catalog"></main>
+
+      <footer class="page">
+        <p>
+          Source:
+          <a
+            href="https://github.com/arturo-herrera-stori/kyc-utilities"
+            rel="noopener noreferrer"
+            >github.com/arturo-herrera-stori/kyc-utilities</a
+          >
+        </p>
+      </footer>
+    </div>
+    <script src="assets/hub.js" defer></script>
+  </body>
+</html>

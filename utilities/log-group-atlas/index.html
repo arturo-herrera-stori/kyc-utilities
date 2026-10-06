@@ -1,0 +1,992 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>KYC Log Group Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --bg:#f7f6f3;
+    --surface:#ffffff;
+    --surface-2:#f0efe9;
+    --border:#e3e1d9;
+    --text:#1b1e1d;
+    --text-muted:#666c68;
+    --text-faint:#8b9089;
+    --accent:#276f5c;
+    --accent-soft:#e3efe9;
+    --warn:#a8721e;
+    --warn-soft:#f5ead4;
+    --critical:#a23f2e;
+    --critical-soft:#f6e4df;
+    --neutral-soft:#ececE4;
+    --code-bg:#f0efe7;
+    --shadow: 0 1px 2px rgba(30,35,30,0.04), 0 2px 8px rgba(30,35,30,0.04);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#15181a;
+      --surface:#1c2022;
+      --surface-2:#22262a;
+      --border:#2c3134;
+      --text:#e7e8e5;
+      --text-muted:#a2a8a4;
+      --text-faint:#767c78;
+      --accent:#57b195;
+      --accent-soft:#1e2e2a;
+      --warn:#d9a257;
+      --warn-soft:#332a1c;
+      --critical:#e08268;
+      --critical-soft:#33221f;
+      --neutral-soft:#2a2e2c;
+      --code-bg:#22262a;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 2px 10px rgba(0,0,0,0.25);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#15181a;
+    --surface:#1c2022;
+    --surface-2:#22262a;
+    --border:#2c3134;
+    --text:#e7e8e5;
+    --text-muted:#a2a8a4;
+    --text-faint:#767c78;
+    --accent:#57b195;
+    --accent-soft:#1e2e2a;
+    --warn:#d9a257;
+    --warn-soft:#332a1c;
+    --critical:#e08268;
+    --critical-soft:#33221f;
+    --neutral-soft:#2a2e2c;
+    --code-bg:#22262a;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 2px 10px rgba(0,0,0,0.25);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Sans', system-ui, sans-serif;
+    font-size:15px;
+    line-height:1.55;
+    padding:0 20px 72px;
+  }
+  .wrap{max-width:920px;margin:0 auto;}
+  h1,h2,h3{text-wrap:balance; font-family:'IBM Plex Mono','SF Mono',monospace;}
+  code, .mono{font-family:'IBM Plex Mono','SF Mono',monospace;}
+
+  /* ---- header ---- */
+  header.page{
+    padding:40px 0 24px;
+    border-bottom:1px solid var(--border);
+  }
+  .hub-back{
+    margin:0 0 16px;
+    font-size:14px;
+  }
+  .hub-back a{
+    color:var(--text-muted);
+    text-decoration:none;
+    font-weight:500;
+  }
+  .hub-back a:hover{
+    color:var(--accent);
+    text-decoration:underline;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--accent);
+    font-weight:600;
+    margin:0 0 10px;
+  }
+  h1{
+    font-size:clamp(26px,4vw,34px);
+    font-weight:700;
+    margin:0 0 12px;
+    letter-spacing:-0.01em;
+  }
+  .dek{
+    color:var(--text-muted);
+    max-width:62ch;
+    margin:0;
+    font-size:15px;
+  }
+  .scope-note{
+    margin-top:18px;
+    padding:12px 14px;
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:8px;
+    font-size:13.5px;
+    color:var(--text-muted);
+  }
+  .scope-note b{color:var(--text); font-weight:600;}
+
+  /* ---- stat row ---- */
+  .stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:1px;
+    background:var(--border);
+    border:1px solid var(--border);
+    border-radius:10px;
+    overflow:hidden;
+    margin:24px 0 8px;
+  }
+  .stat{
+    background:var(--surface);
+    padding:16px 16px 14px;
+  }
+  .stat .n{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:26px;
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+    color:var(--text);
+    display:block;
+  }
+  .stat .l{
+    font-size:12px;
+    color:var(--text-muted);
+    margin-top:2px;
+  }
+  @media (max-width:560px){
+    .stats{grid-template-columns:repeat(2,1fr);}
+  }
+
+  /* ---- toolbar ---- */
+  .toolbar{
+    position:sticky;
+    top:0;
+    z-index:5;
+    background:var(--bg);
+    padding:16px 0;
+    margin-bottom:8px;
+    border-bottom:1px solid var(--border);
+  }
+  .toolbar-inner{
+    display:flex;
+    gap:10px;
+    align-items:center;
+  }
+  #search{
+    flex:1;
+    min-width:0;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:14px;
+    padding:10px 14px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--text);
+  }
+  #search:focus{outline:2px solid var(--accent); outline-offset:1px;}
+  #search::placeholder{color:var(--text-faint);}
+  #count-live{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--text-muted);
+    white-space:nowrap;
+  }
+
+  /* ---- toc chips ---- */
+  .toc{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    padding:14px 0 6px;
+  }
+  .toc a{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    text-decoration:none;
+    color:var(--text-muted);
+    background:var(--surface);
+    border:1px solid var(--border);
+    padding:5px 9px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  .toc a:hover{color:var(--accent); border-color:var(--accent);}
+
+  /* ---- component sections ---- */
+  section.component{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    box-shadow:var(--shadow);
+    padding:22px 24px 20px;
+    margin:18px 0;
+    scroll-margin-top:76px;
+  }
+  section.component.is-hidden{display:none;}
+  .comp-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .comp-name{
+    font-size:19px;
+    font-weight:600;
+    margin:0;
+  }
+  .comp-kind{
+    font-size:13px;
+    color:var(--text-muted);
+    margin:4px 0 0;
+    font-family:'IBM Plex Sans',sans-serif;
+  }
+  .badge{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    font-weight:600;
+    letter-spacing:.02em;
+    padding:5px 10px;
+    border-radius:999px;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+  .badge.ok{background:var(--accent-soft); color:var(--accent);}
+  .badge.warn{background:var(--warn-soft); color:var(--warn);}
+  .badge.neutral{background:var(--neutral-soft); color:var(--text-muted);}
+
+  .note-line{
+    margin:12px 0 0;
+    font-size:13px;
+    color:var(--text-muted);
+    background:var(--surface-2);
+    border-left:3px solid var(--border);
+    padding:9px 12px;
+    border-radius:0 6px 6px 0;
+  }
+  .note-line.callout{border-left-color:var(--warn); color:var(--text);}
+
+  table.loggroups{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:16px;
+    font-size:13px;
+  }
+  table.loggroups th{
+    text-align:left;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--text-faint);
+    font-weight:600;
+    padding:0 0 8px;
+    border-bottom:1px solid var(--border);
+  }
+  table.loggroups td{
+    padding:10px 0;
+    border-bottom:1px solid var(--border);
+    vertical-align:top;
+  }
+  table.loggroups tr:last-child td{border-bottom:none;}
+  table.loggroups td.lg{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    color:var(--text);
+    padding-right:16px;
+    white-space:normal;
+    word-break:break-all;
+    width:52%;
+  }
+  table.loggroups td.lg a{
+    color:var(--text);
+    text-decoration:none;
+    border-bottom:1px solid var(--border);
+  }
+  table.loggroups td.lg a:hover{
+    color:var(--accent);
+    border-bottom-color:var(--accent);
+  }
+  table.loggroups td.lg .lgrow{display:block; margin:3px 0;}
+  table.loggroups td.note{color:var(--text-muted); font-size:13px;}
+  .tag{
+    display:inline-block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    font-weight:600;
+    letter-spacing:.02em;
+    padding:1px 6px;
+    border-radius:4px;
+    margin-right:6px;
+    vertical-align:middle;
+  }
+  .tag.active{background:var(--accent-soft); color:var(--accent);}
+  .tag.dead{background:var(--critical-soft); color:var(--critical);}
+  .tag.dormant{background:var(--neutral-soft); color:var(--text-faint);}
+  .console-link{
+    font-size:11px;
+    color:var(--text-faint);
+    margin-left:6px;
+  }
+  .tbl-wrap{overflow-x:auto;}
+
+  .no-logs{
+    margin-top:14px;
+    font-size:13.5px;
+    color:var(--text-muted);
+  }
+
+  /* ---- summary table ---- */
+  .summary-section h2{font-size:20px; margin-bottom:4px;}
+  .summary-section .dek{margin-bottom:16px;}
+  table.summary{
+    width:100%;
+    border-collapse:collapse;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    overflow:hidden;
+    font-size:13.5px;
+  }
+  table.summary th{
+    text-align:left;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--text-faint);
+    background:var(--surface-2);
+    padding:10px 16px;
+  }
+  table.summary td{
+    padding:9px 16px;
+    border-top:1px solid var(--border);
+  }
+  table.summary td.count{
+    font-family:'IBM Plex Mono',monospace;
+    font-variant-numeric:tabular-nums;
+    text-align:right;
+    padding-right:20px;
+  }
+  table.summary tr.zero td{color:var(--text-faint);}
+  .bar{
+    display:inline-block;
+    height:6px;
+    background:var(--accent-soft);
+    border-radius:3px;
+    vertical-align:middle;
+    margin-right:8px;
+  }
+  .bar-fill{display:block;height:100%;background:var(--accent);border-radius:3px;}
+
+  footer.page{
+    margin-top:40px;
+    padding-top:18px;
+    border-top:1px solid var(--border);
+    font-size:12.5px;
+    color:var(--text-faint);
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="page">
+    <p class="hub-back"><a href="../../">&larr; KYC Utilities Hub</a></p>
+    <p class="eyebrow">KYC Engineering &middot; Reference</p>
+    <h1>KYC Log Group Atlas</h1>
+    <p class="dek">Every CloudWatch log group owned by a KYC-team repository, mapped from each service's actual IaC (CDK / Serverless / Hyperlane) and verified against the live AWS account. Every log group name below links straight to its CloudWatch console page in <b>prod</b> — click through to start troubleshooting, no need to search for it by hand.</p>
+    <div class="scope-note">
+      Scoped to KYC-owned repos only. Excludes shared org-wide infra (<code>hyperlane-registry</code>, <code>iam-roles-ph/prod</code>, QA automation) and a same-named but unrelated <b>Collections / Customer-Service-Agent</b> "Calakmul" tool (<code>calakmul-agent-api-*</code>, <code>CalakmulSofipo*</code>) that reuses the platform name for a different team. Links target account <code>289021957213</code> / region <code>us-east-1</code>. Entries tagged <span class="tag active" style="margin:0 2px;">active</span> / <span class="tag dead" style="margin:0 2px;">no writes ≥30d</span> were verified against `storedBytes` in their retention window — see <code>engineering/dead-n-orphan-log-groups.md</code> in the kyc-context repo for the full audit and methodology. Unlabeled entries weren't checked for recent activity.
+    </div>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><span class="n">25</span><span class="l">components reviewed</span></div>
+    <div class="stat"><span class="n">92</span><span class="l">log groups mapped</span></div>
+    <div class="stat"><span class="n">18</span><span class="l">with log groups</span></div>
+    <div class="stat"><span class="n">7</span><span class="l">client-side / no CW logs</span></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="toolbar-inner">
+      <input id="search" type="text" placeholder="Filter by component, log group, or keyword (e.g. &quot;ecs&quot;, &quot;incode&quot;, &quot;lambda&quot;)&hellip;" autocomplete="off">
+      <span id="count-live" class="mono">25 / 25</span>
+    </div>
+    <nav class="toc" id="toc"></nav>
+  </div>
+
+  <main id="components">
+
+    <section class="component" id="identity-listeners" data-search="identity-listeners ecs lambda event listeners account creation address update soft decline resume video selfie watch list reminders sunrise transactions fix user module csv processor identities creation index user face on hold users">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">identity-listeners</h2>
+          <p class="comp-kind">Lambda event listeners + ECS long-running processors — largest CloudWatch footprint of any KYC repo</p>
+        </div>
+        <span class="badge ok">15 log groups</span>
+      </div>
+      <div class="tbl-wrap">
+      <table class="loggroups">
+        <tr><th>Log group</th><th>Notes</th></tr>
+        <tr><td class="lg">/aws/lambda/identity-account-creation-listener</td><td class="note">accountCreationListener</td></tr>
+        <tr><td class="lg">/aws/lambda/identity-address-update-listener</td><td class="note">addressUpdateListener</td></tr>
+        <tr><td class="lg">/aws/lambda/identity-soft-decline-resume-listener</td><td class="note"><span class="tag dead">no writes ≥30d</span>softDeclineListener — original version</td></tr>
+        <tr><td class="lg">/aws/lambda/identity-soft-decline-resume-listener-fix</td><td class="note"><span class="tag dead">no writes ≥30d</span>fixSoftDeclineListener — hotfix version</td></tr>
+        <tr><td class="lg">/aws/lambda/identity-soft-decline-resume-listener-fix-v1</td><td class="note"><span class="tag dead">no writes ≥30d</span>fixSoftDeclineListener v1 — latest hotfix version</td></tr>
+        <tr><td class="lg">/aws/lambda/identity-video-selfie-listener</td><td class="note">videoSelfieListener</td></tr>
+        <tr><td class="lg">/aws/lambda/identity-watch-list-listener</td><td class="note">watchListListener</td></tr>
+        <tr><td class="lg">/aws/lambda/identity-reminders</td><td class="note">identityReminders</td></tr>
+        <tr><td class="lg">/aws/lambda/identity-sunrise</td><td class="note">identitySunrise</td></tr>
+        <tr><td class="lg">/aws/lambda/identity-transactions-fix</td><td class="note">fixTransactions</td></tr>
+        <tr><td class="lg">/aws/lambda/identity-user-module-requests-notifications-listener</td><td class="note">userModuleRequestsNotificationsListener</td></tr>
+        <tr><td class="lg">/aws/lambda/identity-csv-processor-prod</td><td class="note">csvProcessor</td></tr>
+        <tr><td class="lg">/ecs/identity/identity-identities-creation</td><td class="note">identitiesCreation (ECS)</td></tr>
+        <tr><td class="lg">/ecs/identity/identity-index-user-face</td><td class="note">indexUsersFace (ECS)</td></tr>
+        <tr><td class="lg">/ecs/identity/identity-on-hold-users</td><td class="note">onHoldUsers (ECS)</td></tr>
+        <tr><td class="lg">/ecs/identity/identity-soft-decline-listener</td><td class="note">softDeclineListener (ECS)</td></tr>
+        <tr><td class="lg">/aws/lambda/identity-listenes-LogRetentionaae0aa3c5b4d4f87b02d-CpNsM0LZHkMH</td><td class="note">CDK log-retention custom resource — internal plumbing, not app logic</td></tr>
+      </table>
+      </div>
+      <p class="note-line callout">All 3 <code>identity-soft-decline-resume-listener*</code> versions show zero writes in 30 days — either the flow is genuinely rare, or the trigger is silently disconnected. Check Lambda's own invocation metrics before assuming either. See <code>dead-n-orphan-log-groups.md</code>.</p>
+      <p class="note-line">Repo also defines <code>src/cancelListener</code> — no matching log group found in AWS; likely not currently deployed.</p>
+    </section>
+
+    <section class="component" id="kyc-calakmul-apis-sofom" data-search="kyc-calakmul-apis-sofom lambda applicants api spoc assignment restart applicant module status face search priority address">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">kyc-calakmul-apis-sofom</h2>
+          <p class="comp-kind">Lambda — KYC applicant-processing API for the SOFOM product line</p>
+        </div>
+        <span class="badge ok">19 log groups</span>
+      </div>
+      <div class="tbl-wrap">
+      <table class="loggroups">
+        <tr><th>Log group</th><th>Notes</th></tr>
+        <tr><td class="lg">/aws/lambda/kyc-calakmul-apis-sofom-ApplicantsAPI-prod</td><td class="note">Core applicants API</td></tr>
+        <tr><td class="lg">/aws/lambda/kyc-calakmul-apis-sofom-ApplicantsKYC-prod</td><td class="note">KYC-specific applicant logic</td></tr>
+        <tr><td class="lg">/aws/lambda/kyc-calakmul-apis-sofom-ApplicantModuleStatuses-prod</td><td class="note">Module status tracking</td></tr>
+        <tr><td class="lg">/aws/lambda/kyc-calakmul-apis-sofom-AssignmentSystem-prod</td><td class="note">Case assignment</td></tr>
+        <tr><td class="lg">/aws/lambda/kyc-calakmul-apis-sofom-CalakmulInvocation-prod</td><td class="note">Invocation entrypoint</td></tr>
+        <tr><td class="lg">/aws/lambda/kyc-calakmul-apis-sofom-FaceSearchMatches-prod</td><td class="note">Face-search matching</td></tr>
+        <tr><td class="lg">/aws/lambda/kyc-calakmul-apis-sofom-KycPriorityHandler-prod</td><td class="note">Priority handling</td></tr>
+        <tr><td class="lg">/aws/lambda/kyc-calakmul-apis-sofom-ManageAddress-prod</td><td class="note">Address management</td></tr>
+        <tr><td class="lg">/aws/lambda/kyc-calakmul-apis-sofom-ManageApplicant-prod</td><td class="note">Applicant management</td></tr>
+        <tr><td class="lg">/aws/lambda/kyc-calakmul-apis-sofom-ManageNotes-prod</td><td class="note">Case notes</td></tr>
+        <tr><td class="lg">/aws/lambda/kyc-calakmul-apis-sofom-MigrateToSPOC-prod</td><td class="note">SPOC migration</td></tr>
+        <tr><td class="lg">/aws/lambda/kyc-calakmul-apis-sofom-PresignedUrls-prod</td><td class="note">S3 presigned URL generation</td></tr>
+        <tr><td class="lg">/aws/lambda/kyc-calakmul-apis-sofom-PriorityDecision-prod</td><td class="note">Priority decisioning</td></tr>
+        <tr><td class="lg">/aws/lambda/kyc-calakmul-apis-sofom-Restart-prod</td><td class="note">The "restart" endpoint from <code>restart/service.py</code> — restarts a <b>KYC automation applicant</b>, unrelated to Incode session restart</td></tr>
+        <tr><td class="lg">/aws/lambda/kyc-calakmul-apis-sofom-SPOCAssign-prod</td><td class="note">SPOC assignment</td></tr>
+        <tr><td class="lg">/aws/lambda/kyc-calakmul-apis-sofom-SPOCReview-prod</td><td class="note">SPOC review</td></tr>
+        <tr><td class="lg">/aws/lambda/kyc-calakmul-apis-sofom-SearchApplicants-prod</td><td class="note">Applicant search</td></tr>
+        <tr><td class="lg">API-Gateway-Execution-Logs_kyc-calakmul-apis-sofom-api</td><td class="note">Public API Gateway execution logs</td></tr>
+        <tr><td class="lg">API-Gateway-Execution-Logs_kyc-calakmul-apis-sofom-private-calakmul-api</td><td class="note">Private/internal API Gateway execution logs</td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section class="component" id="identity-bff-mobile" data-search="identity-bff-mobile ecs fargate sofom api gateway video selfie contracts">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">identity-bff-mobile</h2>
+          <p class="comp-kind">ECS Fargate service — main deployment + a parallel SOFOM stack</p>
+        </div>
+        <span class="badge ok">9 log groups</span>
+      </div>
+      <div class="tbl-wrap">
+      <table class="loggroups">
+        <tr><th>Log group</th><th>Notes</th></tr>
+        <tr><td class="lg">/ecs/identity/identity-bff-mobile</td><td class="note">Main (non-sofom) service log group</td></tr>
+        <tr><td class="lg">identity-bff-mobile-sofom-EcsTasksnetworkLoadBalancerServiceLogGroup7B8838E1-EY4wqdCkmgqx</td><td class="note"><span class="tag active">active</span>Sofom ECS service logs — the live revision (~3.1 MB/30d)</td></tr>
+        <tr><td class="lg">identity-bff-mobile-sofom-EcsTasksnetworkLoadBalancerServiceLogGroup7B8838E1-CsCgsVc67je0<span class="lgrow">identity-bff-mobile-sofom-EcsTasksnetworkLoadBalancerServiceLogGroup7B8838E1-b9RKgXVR8tTp</span></td><td class="note"><span class="tag dead">no writes ≥30d</span>Stale revisions from prior redeploys — safe cleanup candidates</td></tr>
+        <tr><td class="lg">identity-bff-mobile-sofom-EcsTasksnetworkLoadBalancerTaskDefwebLogGroupC2CFB07F-Op2YF4JqtAKL<span class="lgrow">identity-bff-mobile-sofom-EcsTasksnetworkLoadBalancerTaskDefwebLogGroupC2CFB07F-cR6jHXiv7GUv</span><span class="lgrow">identity-bff-mobile-sofom-EcsTasksnetworkLoadBalancerTaskDefwebLogGroupC2CFB07F-gnFSmiCO1knY</span></td><td class="note"><span class="tag dead">no writes ≥30d</span>All 3 task-def container log revisions are silent — see dead-n-orphan doc</td></tr>
+        <tr><td class="lg">identity-bff-mobile-sofom-api-gw-prod</td><td class="note">API Gateway access logs, sofom stack</td></tr>
+        <tr><td class="lg">identity-bff-mobile-sofom-identity-SignVideoSelfieContracts</td><td class="note">Related contract / step-function log group</td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section class="component" id="kyc-incode-manager" data-search="kyc-incode-manager lambda incode start onboarding curp data fetcher webhook recovery handler turbo nom151 renew token restart">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">kyc-incode-manager</h2>
+          <p class="comp-kind">Lambda — Incode vendor integration (dev/QA-labeled repo, per its own README)</p>
+        </div>
+        <span class="badge ok">9 log groups</span>
+      </div>
+      <div class="tbl-wrap">
+      <table class="loggroups">
+        <tr><th>Log group</th><th>Notes</th></tr>
+        <tr><td class="lg">/aws/lambda/kyc-incode-manager-IncodeStartOnboarding-prod</td><td class="note">incode_start_onboarding — includes the <code>__renew_token</code> 90-day restart-pattern logic</td></tr>
+        <tr><td class="lg">/aws/lambda/kyc-incode-manager-IncodeDataFetcher-prod</td><td class="note">incode_data_fetcher</td></tr>
+        <tr><td class="lg">/aws/lambda/kyc-incode-manager-IncodeWebhook-prod</td><td class="note">incode_webhook</td></tr>
+        <tr><td class="lg">/aws/lambda/kyc-incode-manager-IncodeStartRecovery-prod</td><td class="note">incode_start_recovery</td></tr>
+        <tr><td class="lg">/aws/lambda/kyc-incode-manager-RecoveryHandler-prod</td><td class="note">recovery_handler</td></tr>
+        <tr><td class="lg">/aws/lambda/kyc-incode-manager-turbo-IncodeStartOnboarding-prod</td><td class="note">"Turbo" product-line variant</td></tr>
+        <tr><td class="lg">/aws/lambda/kyc-incode-manager-turbo-IncodeNom151-prod</td><td class="note">Turbo NOM-151 (Mexican e-signature/consent standard) handling</td></tr>
+        <tr><td class="lg">API-Gateway-Execution-Logs_kyc-incode-manager-api</td><td class="note">Main API Gateway execution logs</td></tr>
+        <tr><td class="lg">API-Gateway-Execution-Logs_KYCIncodeWebhook-api</td><td class="note">Webhook-specific API Gateway execution logs</td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section class="component" id="calakmul-auth-sofom" data-search="calakmul-auth-sofom lambda cognito redirect pretoken">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">calakmul-auth-sofom</h2>
+          <p class="comp-kind">Lambda — Cognito auth triggers</p>
+        </div>
+        <span class="badge ok">11 log groups</span>
+      </div>
+      <div class="tbl-wrap">
+      <table class="loggroups">
+        <tr><th>Log group</th><th>Notes</th></tr>
+        <tr><td class="lg">/aws/lambda/calakmul-auth-sofom-CognitoRedirect-prod</td><td class="note">Cognito redirect handler</td></tr>
+        <tr><td class="lg">/aws/lambda/calakmul-auth-sofom-PreToken-prod</td><td class="note">Cognito pre-token-generation trigger</td></tr>
+        <tr><td class="lg">/aws/lambda/calakmul-auth-sofom-LogRetentionaae0aa3c5b4d4f87b0-5OdXD0ox6u4i<span class="lgrow">/aws/lambda/calakmul-auth-sofom-LogRetentionaae0aa3c5b4d4f87b0-E6G4Sr9zRxAA</span><span class="lgrow">/aws/lambda/calakmul-auth-sofom-LogRetentionaae0aa3c5b4d4f87b0-JmEL2Ex9Anu7</span><span class="lgrow">/aws/lambda/calakmul-auth-sofom-LogRetentionaae0aa3c5b4d4f87b0-KgCPbsTfFb6u</span><span class="lgrow">/aws/lambda/calakmul-auth-sofom-LogRetentionaae0aa3c5b4d4f87b0-N1AAJ8SCdnZh</span><span class="lgrow">/aws/lambda/calakmul-auth-sofom-LogRetentionaae0aa3c5b4d4f87b0-OeTNU5Lm4eUn</span><span class="lgrow">/aws/lambda/calakmul-auth-sofom-LogRetentionaae0aa3c5b4d4f87b0-OjE489h6tcsc</span><span class="lgrow">/aws/lambda/calakmul-auth-sofom-LogRetentionaae0aa3c5b4d4f87b0-dFknb65uddp7</span><span class="lgrow">/aws/lambda/calakmul-auth-sofom-LogRetentionaae0aa3c5b4d4f87b0-z89r9jxJTgJv</span></td><td class="note"><span class="tag dormant">dormant by design</span>9 CDK log-retention custom-resource groups (1-day retention, fire once per stack deploy) — noise, not app logic; not a cleanup target</td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section class="component" id="identity-engine" data-search="identity-engine lambda automation business validation manual validation">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">identity-engine</h2>
+          <p class="comp-kind">Lambda — decisioning &amp; validation rules (3 functions)</p>
+        </div>
+        <span class="badge ok">4 log groups</span>
+      </div>
+      <div class="tbl-wrap">
+      <table class="loggroups">
+        <tr><th>Log group</th><th>Notes</th></tr>
+        <tr><td class="lg">/aws/lambda/identity-engine-automation-function</td><td class="note">Automation decisioning</td></tr>
+        <tr><td class="lg">/aws/lambda/identity-engine-business-validation-function</td><td class="note">Business validation rules</td></tr>
+        <tr><td class="lg">/aws/lambda/identity-engine-manual-validation-function</td><td class="note">Manual validation queue</td></tr>
+        <tr><td class="lg">/aws/lambda/identity-engine-LogRetentionaae0aa3c5b4d4f87b02d85-uV1ws0b6mKsi</td><td class="note">CDK log-retention custom resource</td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section class="component" id="identity-calakmul-bff" data-search="identity-calakmul-bff ecs fargate sofom api gateway">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">identity-calakmul-bff</h2>
+          <p class="comp-kind">ECS Fargate service — sofom stack only, no plain non-sofom variant found</p>
+        </div>
+        <span class="badge ok">5 log groups</span>
+      </div>
+      <div class="tbl-wrap">
+      <table class="loggroups">
+        <tr><th>Log group</th><th>Notes</th></tr>
+        <tr><td class="lg">identity-calakmul-bff-sofom-EcsTasksnetworkLoadBalancerServiceLogGroup7B8838E1-FKomXPJF52cX</td><td class="note"><span class="tag active">active</span>Live service revision (~932 KB/30d)</td></tr>
+        <tr><td class="lg">identity-calakmul-bff-sofom-EcsTasksnetworkLoadBalancerServiceLogGroup7B8838E1-DRyKWUWnlkdy</td><td class="note"><span class="tag dead">no writes ≥30d</span>Stale revision — cleanup candidate</td></tr>
+        <tr><td class="lg">identity-calakmul-bff-sofom-EcsTasksnetworkLoadBalancerTaskDefwebLogGroupC2CFB07F-QY617QQBMbm0</td><td class="note"><span class="tag active">active</span>Live task-def logs — <b>~368 MB in 30 days</b>, unusually high volume vs. every other service checked, worth a look</td></tr>
+        <tr><td class="lg">identity-calakmul-bff-sofom-EcsTasksnetworkLoadBalancerTaskDefwebLogGroupC2CFB07F-d5ncGUQ7Ya3o</td><td class="note"><span class="tag dead">no writes ≥30d</span>Stale revision — cleanup candidate</td></tr>
+        <tr><td class="lg">identity-calakmul-bff-sofom-api-gw-prod</td><td class="note">API Gateway access logs</td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section class="component" id="identity-cecoban" data-search="identity-cecoban lambda scrapper">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">identity-cecoban</h2>
+          <p class="comp-kind">Lambda — CECOBAN (Mexican interbank clearing house) integration, 2 functions</p>
+        </div>
+        <span class="badge ok">3 log groups</span>
+      </div>
+      <div class="tbl-wrap">
+      <table class="loggroups">
+        <tr><th>Log group</th><th>Notes</th></tr>
+        <tr><td class="lg">/aws/lambda/identity-cecoban</td><td class="note">Main CECOBAN integration function</td></tr>
+        <tr><td class="lg">/aws/lambda/identity-scrapper</td><td class="note"><code>src/scrapper</code> — despite the generic name, this belongs to identity-cecoban, not identity-listeners</td></tr>
+        <tr><td class="lg">/aws/lambda/identity-cecoban-LogRetentionaae0aa3c5b4d4f87b02d8-SIpx4JqRwMbh</td><td class="note">CDK log-retention custom resource</td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section class="component" id="identity-flows" data-search="identity-flows ecs fargate sofom flowservice">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">identity-flows</h2>
+          <p class="comp-kind">ECS Fargate service — main + sofom</p>
+        </div>
+        <span class="badge ok">2 log groups</span>
+      </div>
+      <div class="tbl-wrap">
+      <table class="loggroups">
+        <tr><th>Log group</th><th>Notes</th></tr>
+        <tr><td class="lg">/ecs/identity/flowService</td><td class="note">Main service log group</td></tr>
+        <tr><td class="lg">identity-flows-sofom-EcsTasksflowserviceLogGroup941F7B43-AB78KLCbHtCh</td><td class="note"><span class="tag active">active</span>Sofom-variant service log group (~1.8 MB/30d)</td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section class="component" id="identity-validation" data-search="identity-validation ecs fargate sofom validationservice">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">identity-validation</h2>
+          <p class="comp-kind">ECS Fargate service — main + sofom</p>
+        </div>
+        <span class="badge ok">2 log groups</span>
+      </div>
+      <div class="tbl-wrap">
+      <table class="loggroups">
+        <tr><th>Log group</th><th>Notes</th></tr>
+        <tr><td class="lg">/ecs/identity/validationService</td><td class="note">Main service log group</td></tr>
+        <tr><td class="lg">identity-validation-sofom-EcsTasksvalidationserviceLogGroup02186479-iGeUuFWiZijJ</td><td class="note"><span class="tag active">active</span>Sofom-variant service log group (~1.9 MB/30d)</td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section class="component" id="identity-incode-service" data-search="identity-incode-service ecs fargate sofom incode-service">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">identity-incode-service</h2>
+          <p class="comp-kind">ECS Fargate service — main + sofom; confirms the <code>/ecs/identity/${serviceName}Service</code> pattern from <code>cdk/lib/ecs.ts</code></p>
+        </div>
+        <span class="badge ok">2 log groups</span>
+      </div>
+      <div class="tbl-wrap">
+      <table class="loggroups">
+        <tr><th>Log group</th><th>Notes</th></tr>
+        <tr><td class="lg">/ecs/identity/incode-serviceService</td><td class="note">Main service log group</td></tr>
+        <tr><td class="lg">identity-incode-service-sofom-EcsTasksincodeserviceserviceLogGroup344200A0-DTe7H2i5U29z</td><td class="note"><span class="tag active">active</span>Sofom-variant service log group (~2.7 MB/30d)</td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section class="component" id="identity-provider-failsafe" data-search="identity-provider-failsafe hyperlane service catalog trace collector otel">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">identity-provider-failsafe</h2>
+          <p class="comp-kind">Hyperlane-provisioned service (Go, Service Catalog product)</p>
+        </div>
+        <span class="badge ok">2 log groups</span>
+      </div>
+      <div class="tbl-wrap">
+      <table class="loggroups">
+        <tr><th>Log group</th><th>Notes</th></tr>
+        <tr><td class="lg">hyperlane-identity-provider-failsafe-ServiceLogGroup-SC-289021957213-pp-52hykamn67qks-prod</td><td class="note">Application logs</td></tr>
+        <tr><td class="lg">hyperlane-identity-provider-failsafe-TraceCollectorLogGroup-SC-289021957213-pp-52hykamn67qks-prod</td><td class="note">OTel trace collector sidecar logs</td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section class="component" id="identity-files" data-search="identity-files hyperlane service catalog telemetry collector">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">identity-files</h2>
+          <p class="comp-kind">Hyperlane-provisioned service</p>
+        </div>
+        <span class="badge ok">2 log groups</span>
+      </div>
+      <div class="tbl-wrap">
+      <table class="loggroups">
+        <tr><th>Log group</th><th>Notes</th></tr>
+        <tr><td class="lg">hyperlane-identity-files-ServiceLogGroup-SC-289021957213-pp-g34digrdkmy4a-prod</td><td class="note">Application logs</td></tr>
+        <tr><td class="lg">hyperlane-identity-files-TelemetryCollectorLogGroup-SC-289021957213-pp-g34digrdkmy4a-prod</td><td class="note">Telemetry collector sidecar logs</td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section class="component" id="identity-internal-apis" data-search="identity-internal-apis hyperlane service catalog trace collector otel">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">identity-internal-apis</h2>
+          <p class="comp-kind">Hyperlane-provisioned service</p>
+        </div>
+        <span class="badge ok">2 log groups</span>
+      </div>
+      <div class="tbl-wrap">
+      <table class="loggroups">
+        <tr><th>Log group</th><th>Notes</th></tr>
+        <tr><td class="lg">hyperlane-identity-internal-apis-ServiceLogGroup-SC-289021957213-pp-vn7glbhi7cs5q-prod</td><td class="note">Application logs</td></tr>
+        <tr><td class="lg">hyperlane-identity-internal-apis-TraceCollectorLogGroup-SC-289021957213-pp-vn7glbhi7cs5q-prod</td><td class="note">OTel trace collector sidecar logs</td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section class="component" id="identity-internal-handler" data-search="identity-internal-handler ecs fargate">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">identity-internal-handler</h2>
+          <p class="comp-kind">ECS Fargate service</p>
+        </div>
+        <span class="badge ok">2 log groups</span>
+      </div>
+      <div class="tbl-wrap">
+      <table class="loggroups">
+        <tr><th>Log group</th><th>Notes</th></tr>
+        <tr><td class="lg">/ecs/identity/internal-handlerService</td><td class="note">Main service log group</td></tr>
+        <tr><td class="lg">identity-internal-handler-EcsTasksinternalhandlerserviceLogGroup84F7B031-hLHLwCotipvc</td><td class="note"><span class="tag active">active</span>CDK-default-named service log group (~3.7 MB/30d) — no "-sofom-" variant found for this one</td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section class="component" id="identity-logs" data-search="identity-logs lambda">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">identity-logs</h2>
+          <p class="comp-kind">Single-purpose Lambda</p>
+        </div>
+        <span class="badge ok">1 log group</span>
+      </div>
+      <div class="tbl-wrap">
+      <table class="loggroups">
+        <tr><th>Log group</th><th>Notes</th></tr>
+        <tr><td class="lg">/aws/lambda/identity-logs-identity-Logs-Function</td><td class="note">Main function</td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section class="component" id="identity-calakmul-bff-rt" data-search="identity-calakmul-bff-rt ecs fargate real-time">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">identity-calakmul-bff-rt</h2>
+          <p class="comp-kind">ECS Fargate service — "rt" = real-time variant, separate repo from identity-calakmul-bff</p>
+        </div>
+        <span class="badge ok">1 log group</span>
+      </div>
+      <div class="tbl-wrap">
+      <table class="loggroups">
+        <tr><th>Log group</th><th>Notes</th></tr>
+        <tr><td class="lg">/ecs/identity/calakmul-bff-rtService</td><td class="note">Main service log group</td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section class="component" id="identity-core" data-search="identity-core shared infra ecs cluster container insights foundational identity manager">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">identity-core</h2>
+          <p class="comp-kind">Shared foundational infra — the ECS cluster + service-discovery namespace every other <code>/ecs/identity/*</code> service runs in, plus SNS/SQS/Kinesis/DynamoDB/Cognito</p>
+        </div>
+        <span class="badge ok">1 log group</span>
+      </div>
+      <div class="tbl-wrap">
+      <table class="loggroups">
+        <tr><th>Log group</th><th>Notes</th></tr>
+        <tr><td class="lg">/aws/ecs/containerinsights/identity/performance</td><td class="note">Cluster-wide Container Insights — useful for <b>infra-level</b> troubleshooting (CPU/memory/network across every service on the shared <code>identity</code> ECS cluster), not one service's application logs</td></tr>
+      </table>
+      </div>
+      <p class="note-line">Its <code>lambdas.ts</code> "HelloHandler" is unused template scaffolding, not real functionality — no meaningful log group there.</p>
+    </section>
+
+    <section class="component" id="identity-veriff-service" data-search="identity-veriff-service not deployed decommissioned veriff">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">identity-veriff-service</h2>
+          <p class="comp-kind">ECS Fargate service per its own CDK — expected log group <code>/ecs/identity/identity-veriff-serviceService</code></p>
+        </div>
+        <span class="badge warn">not found in AWS</span>
+      </div>
+      <p class="note-line callout">Zero matches for "veriff" anywhere across the account's 4,827 log groups. This service does not appear to be currently deployed to prod — confirm with the team whether it's decommissioned or was never launched.</p>
+    </section>
+
+    <section class="component" id="identity-profile" data-search="identity-profile hyperlane customer care not deployed ownership">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">identity-profile</h2>
+          <p class="comp-kind">Hyperlane-provisioned service (Go)</p>
+        </div>
+        <span class="badge warn">not found in AWS</span>
+      </div>
+      <p class="note-line callout">No hits for "identity-profile" anywhere in the account — may be undeployed, or hosted in a different AWS account than the one queried here. Also worth a second look at ownership: its own <code>hyperlane.json</code> tags it <code>owner: CustomerCare</code>, <code>Squad: multiproduct-kyc</code> — borderline, flagged rather than silently dropped from this doc.</p>
+    </section>
+
+    <section class="component" id="identity-cli" data-search="identity-cli observability cli logs insights queries no deployment">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">identity-cli</h2>
+          <p class="comp-kind">Observability CLI — not a deployed service</p>
+        </div>
+        <span class="badge neutral">no CW logs of its own</span>
+      </div>
+      <p class="no-logs">This is a tool that <i>queries</i> CloudWatch on your behalf — it ships 14 predefined Logs Insights queries against <code>identity-bff-mobile</code>'s log groups plus metric lookups. It has no log group to troubleshoot; it's part of the troubleshooting toolkit itself.</p>
+    </section>
+
+    <section class="component" id="kyc-calakmul-ui-sofom" data-search="kyc-calakmul-ui-sofom static frontend s3 cloudfront no cloudwatch">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">kyc-calakmul-ui-sofom</h2>
+          <p class="comp-kind">Static frontend (S3 / CloudFront hosting)</p>
+        </div>
+        <span class="badge neutral">no CW logs</span>
+      </div>
+      <p class="no-logs">No CloudWatch log group — this is static hosting. Troubleshoot via CloudFront and S3 access logs instead of CloudWatch Logs.</p>
+    </section>
+
+    <section class="component" id="identity-verification" data-search="identity-verification finclip mini program client-side no cloudwatch">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">identity-verification</h2>
+          <p class="comp-kind">FinClip Mini Program — client-side onboarding UI</p>
+        </div>
+        <span class="badge neutral">no CW logs</span>
+      </div>
+      <p class="no-logs">Pure client-side mini program, no backend deployment of its own. No CloudWatch log group.</p>
+    </section>
+
+    <section class="component" id="identity-verification-iOS" data-search="identity-verification-iOS native ios sdk client-side sentry amplitude">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">identity-verification-iOS</h2>
+          <p class="comp-kind">Native iOS SDK</p>
+        </div>
+        <span class="badge neutral">no CW logs</span>
+      </div>
+      <p class="no-logs">Client-side only. Troubleshoot via Sentry / crash reporting and Amplitude, not CloudWatch.</p>
+    </section>
+
+    <section class="component" id="identity-verification-android" data-search="identity-verification-android native android sdk client-side sentry amplitude">
+      <div class="comp-head">
+        <div>
+          <h2 class="comp-name">identity-verification-android</h2>
+          <p class="comp-kind">Native Android SDK</p>
+        </div>
+        <span class="badge neutral">no CW logs</span>
+      </div>
+      <p class="no-logs">Same as iOS — client-side only. Troubleshoot via Sentry / crash reporting and Amplitude, not CloudWatch.</p>
+    </section>
+
+  </main>
+
+  <section class="summary-section">
+    <h2>Coverage at a glance</h2>
+    <p class="dek">Sorted by log group count, largest to lowest. The bar is scaled to kyc-calakmul-apis-sofom's 19 groups.</p>
+    <table class="summary" id="summary-table">
+      <tr><th>Component</th><th>Log groups</th></tr>
+      <!-- rows injected by JS from the same data as the sections above, kept in one place so the two never drift -->
+    </table>
+  </section>
+
+  <footer class="page">
+    Built from each repo's IaC (CDK / Serverless / Hyperlane <code>hyperlane.json</code>) cross-checked against the live AWS account (4,827 log groups scanned, one region). Re-run when a new service ships or a stack is renamed — CDK-default log group names carry a hash suffix that changes whenever the underlying construct is replaced, so a stack redeploy can silently mint new log groups and orphan the old ones.
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var REGION = "us-east-1";
+
+  function lgUrl(name){
+    if(name.indexOf("*") !== -1){
+      var prefix = name.replace(/\*/g, "");
+      return "https://" + REGION + ".console.aws.amazon.com/cloudwatch/home?region=" + REGION +
+        "#logsV2:log-groups?logGroupNamePattern=" + encodeURIComponent(prefix);
+    }
+    return "https://" + REGION + ".console.aws.amazon.com/cloudwatch/home?region=" + REGION +
+      "#logsV2:log-groups/log-group/" + name.split("/").join("$252F");
+  }
+
+  function linkify(text){
+    var a = document.createElement("a");
+    a.href = lgUrl(text);
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = text;
+    return a;
+  }
+
+  // Turn every log-group cell's plain text into a clickable console deep link.
+  // Cells with more than one log group use a leading text node for the first
+  // entry plus <span class="lgrow"> siblings for the rest (see the markup).
+  document.querySelectorAll("table.loggroups td.lg").forEach(function(td){
+    var mainText = "";
+    Array.prototype.forEach.call(td.childNodes, function(node){
+      if(node.nodeType === 3){
+        var t = node.textContent.trim();
+        if(t) mainText += t;
+      }
+    });
+    var rowTexts = Array.prototype.map.call(td.querySelectorAll("span.lgrow"), function(s){
+      return s.textContent.trim();
+    });
+    td.innerHTML = "";
+    if(mainText) td.appendChild(linkify(mainText));
+    rowTexts.forEach(function(t){
+      var span = document.createElement("span");
+      span.className = "lgrow";
+      span.appendChild(linkify(t));
+      td.appendChild(span);
+    });
+  });
+
+  var counts = [
+    ["kyc-calakmul-apis-sofom", 19],
+    ["identity-listeners", 15],
+    ["calakmul-auth-sofom", 11],
+    ["identity-bff-mobile", 9],
+    ["kyc-incode-manager", 9],
+    ["identity-engine", 4],
+    ["identity-calakmul-bff", 5],
+    ["identity-cecoban", 3],
+    ["identity-flows", 2],
+    ["identity-validation", 2],
+    ["identity-incode-service", 2],
+    ["identity-provider-failsafe", 2],
+    ["identity-files", 2],
+    ["identity-internal-apis", 2],
+    ["identity-internal-handler", 2],
+    ["identity-logs", 1],
+    ["identity-calakmul-bff-rt", 1],
+    ["identity-core", 1],
+    ["identity-veriff-service", 0],
+    ["identity-profile", 0],
+    ["identity-cli", 0],
+    ["kyc-calakmul-ui-sofom", 0],
+    ["identity-verification", 0],
+    ["identity-verification-iOS", 0],
+    ["identity-verification-android", 0]
+  ];
+  var max = 19;
+  var table = document.getElementById("summary-table");
+  counts.forEach(function(row){
+    var name = row[0], n = row[1];
+    var tr = document.createElement("tr");
+    if(n === 0) tr.className = "zero";
+    var tdName = document.createElement("td");
+    var code = document.createElement("code");
+    code.textContent = name;
+    tdName.appendChild(code);
+    var tdCount = document.createElement("td");
+    tdCount.className = "count";
+    var pct = Math.round((n / max) * 60);
+    var label = n === 0 ? "—" : String(n);
+    tdCount.innerHTML = '<span class="bar" style="width:'+ (pct+4) +'px"><span class="bar-fill" style="width:'+ (n===0?0:100) +'%"></span></span>' + label;
+    tr.appendChild(tdName);
+    tr.appendChild(tdCount);
+    table.appendChild(tr);
+  });
+
+  // TOC chips, built from the same list order
+  var toc = document.getElementById("toc");
+  counts.forEach(function(row){
+    var name = row[0];
+    var a = document.createElement("a");
+    a.href = "#" + name;
+    a.textContent = name;
+    toc.appendChild(a);
+  });
+
+  // live filter
+  var search = document.getElementById("search");
+  var countLive = document.getElementById("count-live");
+  var sections = Array.prototype.slice.call(document.querySelectorAll("section.component"));
+  var total = sections.length;
+  function applyFilter(){
+    var q = search.value.trim().toLowerCase();
+    var shown = 0;
+    sections.forEach(function(sec){
+      var haystack = (sec.getAttribute("data-search") || "") + " " + sec.textContent.toLowerCase();
+      var match = q === "" || haystack.toLowerCase().indexOf(q) !== -1;
+      sec.classList.toggle("is-hidden", !match);
+      if(match) shown++;
+    });
+    countLive.textContent = shown + " / " + total;
+  }
+  search.addEventListener("input", applyFilter);
+  applyFilter();
+})();
+</script>
+
+</body></html>

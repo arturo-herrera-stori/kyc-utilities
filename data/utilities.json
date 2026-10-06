@@ -1,0 +1,11 @@
+[
+  {
+    "id": "log-group-atlas",
+    "title": "KYC Log Group Atlas",
+    "summary": "CloudWatch log groups per KYC-owned repo, mapped from IaC and linked to the prod console for fast troubleshooting.",
+    "category": "observability",
+    "path": "utilities/log-group-atlas/",
+    "status": "stable",
+    "updated": "2026-10-05"
+  }
+]
